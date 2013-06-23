@@ -8,7 +8,7 @@ This lets you proxy pianobar through ssh (or any SOCKS5 provider).
     ssh -v -D localhost:9080 -C -N example.com
 
     # Start pianobarproxy:
-    pianobarproxy --remote :9080
+    pianobarproxy -socks5 :9080
 
     # Add the following to $HOME/.config/pianobar/config:
     proxy = http://localhost:9090
@@ -18,6 +18,12 @@ This lets you proxy pianobar through ssh (or any SOCKS5 provider).
     go get github.com/robertkrimen/pianobarproxy
 
 (http://golang.org/doc/install)
+
+### Usage
+
+    Usage of pianobarproxy:
+        -listen="localhost:9090": The listening address
+        -socks5="localhost:1080": The address of the SOCKS5 proxy
 
 --
 **godocdown** http://github.com/robertkrimen/godocdown

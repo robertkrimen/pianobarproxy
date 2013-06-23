@@ -7,7 +7,7 @@ This lets you proxy pianobar through ssh (or any SOCKS5 provider).
     ssh -v -D localhost:9080 -C -N example.com
 
     # Start pianobarproxy:
-    pianobarproxy --remote :9080
+    pianobarproxy -socks5 :9080
 
     # Add the following to $HOME/.config/pianobar/config:
     proxy = http://localhost:9090
@@ -17,6 +17,12 @@ Install
      go get github.com/robertkrimen/pianobarproxy
 
 (http://golang.org/doc/install)
+
+Usage
+
+    Usage of pianobarproxy:
+        -listen="localhost:9090": The listening address
+        -socks5="localhost:1080": The address of the SOCKS5 proxy
 
 */
 package main
@@ -29,6 +35,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strings"
 )
 
 var (
@@ -37,8 +44,8 @@ var (
 )
 
 var (
-	flag_listen = flag.String("listen", ":9090", "The listening address")
-	flag_remote = flag.String("remote", "localhost:1080", "The address of the SOCKS5 proxy")
+	flag_listen = flag.String("listen", "localhost:9090", "The listening address")
+	flag_socks5 = flag.String("socks5", "localhost:1080", "The address of the SOCKS5 proxy")
 )
 
 func pipe(a io.ReadWriteCloser, b io.ReadWriteCloser) {
@@ -62,20 +69,20 @@ func httpProxy(writer http.ResponseWriter, request *http.Request) {
 
 	log.Printf("request = %s %s", request.Method, request.URL.Host)
 
-	if proxyRequest.Method == "CONNECT" {
+	if strings.ToUpper(proxyRequest.Method) == "CONNECT" {
 		hostPort := request.URL.Host
-		remote, err := dialer.Dial("tcp", hostPort) // tuner.pandora.com:443
+		pandora, err := dialer.Dial("tcp", hostPort) // tuner.pandora.com:443
 		if err != nil {
 			log.Printf("pianobarproxy: error: %v", err)
 			writer.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		local, writer, err := writer.(http.Hijacker).Hijack()
+		client, writer, err := writer.(http.Hijacker).Hijack()
 		writer.WriteString("HTTP/1.0 200 Connection Established\r\n\r\n")
 		writer.Flush()
-		go pipe(local, remote)
-		go pipe(remote, local)
+		go pipe(client, pandora)
+		go pipe(pandora, client)
 		return
 	}
 	proxyRequest.Proto = "HTTP/1.1"
@@ -125,16 +132,16 @@ func getHost(target, defaultHost, defaultPort string) (string, error) {
 func main() {
 	flag.Parse()
 
-	remote, err := getHost(*flag_remote, "localhost", "1080")
+	socks5, err := getHost(*flag_socks5, "localhost", "1080")
 	if err != nil {
 		panic(err)
 	}
 
-	log.Printf("SOCKS5/--remote = %s", remote)
+	log.Printf("SOCKS5/--socks5 = %s", socks5)
 
 	{
 		var err error
-		dialer, err = proxy.SOCKS5("tcp", remote, nil, &net.Dialer{})
+		dialer, err = proxy.SOCKS5("tcp", socks5, nil, &net.Dialer{})
 		if err != nil {
 			panic(err)
 		}
