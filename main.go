@@ -4,7 +4,7 @@ Command pianobarproxy is a simple SOCKS5 shim for pianobar.
 This lets you proxy pianobar through ssh (or any SOCKS5 provider).
 
     # Start your SOCKS5 proxy via ssh:
-    ssh -v -D 9080 -C -N example.com
+    ssh -v -D localhost:9080 -C -N example.com
 
     # Start pianobarproxy:
     pianobarproxy --remote :9080
