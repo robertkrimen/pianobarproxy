@@ -25,5 +25,8 @@ This lets you proxy pianobar through ssh (or any SOCKS5 provider).
         -listen="localhost:9090": The listening address
         -socks5="localhost:1080": The address of the SOCKS5 proxy
 
---
-**godocdown** http://github.com/robertkrimen/godocdown
+### Piano-proxy.sh
+    Additional script not part of upstream.
+    Starts/stops an Amazon EC2 instance on demand, then starts pianobarproxy
+    Needs an existing EC2 instance. 
+    Usage is ./piano-proxy.sh {start|stop}
